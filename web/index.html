@@ -1,0 +1,97 @@
+<html>
+    <head>
+
+    </head>
+
+    <body>
+
+        <video id="my-video" controls="controls" ></video>
+
+        <div id="rollover-holder" style="margin-top: 30px;">
+            <h1>Rollovers</h1>
+        </div>
+
+        <div id="screencaps-holder" style="margin-top: 30px;">
+            <h1>Screencaps Example</h1>
+        </div>
+
+        <div id="screencaps-nw-holder" style="margin-top: 30px;">
+            <h1>Screencaps (No Watermark) Example</h1>
+        </div>
+
+        <script>
+            function getQueryVariable(variable) {
+                var query = window.location.search.substring(1);
+                var vars = query.split("&");
+                for (var i=0;i<vars.length;i++) {
+                    var pair = vars[i].split("=");
+                    if (pair[0] === variable) {
+                        return pair[1];
+                    }
+                }
+                alert('Query Variable ' + variable + ' not found');
+            }
+        </script>
+
+        <script src="https://cdn.jwplayer.com/libraries/wC3EoP7c.js"></script>
+
+        <script type="text/JavaScript">
+            var file = getQueryVariable('file');
+            var shoot = getQueryVariable('shoot');
+            var numScreencaps = parseInt(getQueryVariable('num_screencaps'));
+            var numRollovers = parseInt(getQueryVariable('num_rollovers'));
+
+            var filePath = "../media/" + shoot + "/";
+
+            var vttLocation = filePath + "sprite/" + shoot + "_thumbs.vtt";
+            var spriteMapLocation = filePath + "sprite/" + shoot + "_sprite.jpg";
+            var videoFileLocation = filePath + file + ".mp4";
+
+            jwplayer("my-video").setup({
+                "height": 360,
+                "width": 640,
+                "playlist": [{
+                    "file": videoFileLocation,
+                    "tracks": [{
+                        "file": vttLocation,
+                        "kind": "thumbnails"
+                    }]
+                }]
+            });
+
+            var screenCapToShow = Math.round((numScreencaps / 2) + 1);
+            if (screenCapToShow < 10) { // add trailing 0
+                screenCapToShow = shoot + "00" + screenCapToShow + ".jpg";
+            } else if (screenCapToShow < 100) { // add trailing 0
+                screenCapToShow = shoot + "0" + screenCapToShow + ".jpg";
+            } else {
+                screenCapToShow = shoot + "" + screenCapToShow + ".jpg";
+            }
+
+            var firstScreencapLocation = filePath + "screencaps/" + screenCapToShow;
+            var firstNWScreencapLocation = filePath + "screencapsnw/" + screenCapToShow;
+
+            var screenCapsHolder = document.getElementById('screencaps-holder');
+            var img = document.createElement('img');
+            img.src = firstScreencapLocation;
+            screenCapsHolder.appendChild(img);
+
+            var screenNWCapsHolder = document.getElementById('screencaps-nw-holder');
+            img = document.createElement('img');
+            img.src = firstNWScreencapLocation;
+            screenNWCapsHolder.appendChild(img);
+
+            // do rollovers
+            var rolloversLocation = filePath + "rollover/180/";
+            var rolloverHolder = document.getElementById('rollover-holder');
+
+            for (var i = 1; i < (numRollovers + 1); i++) {
+                var img = document.createElement('img');
+                img.src = rolloversLocation + i + ".jpg";
+                rolloverHolder.appendChild(img);
+            }
+
+        </script>
+
+    </body>
+</html>
