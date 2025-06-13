@@ -25,32 +25,36 @@ secondsToTime () {
 }
 
 # logic to go and rename files with correct naming convention:
-  #  - numbers, needs to be SHOOT_CODEXXX.jpg
-  #  - always 3 digits (so 1 would be 001)
-  #  - unless > 999 in which case would be normal numbers
-  #  - for example previously would have been "tnpb13624-18.jpg", now would be "tnpb13624018.jpg"
+#   - drop the shoot code from the filename
+#   - pad numbers to always be three digits
+#   - thumbnails should retain the "tn" prefix
 renameScreencaps () {
   SCREENCAPS_DIR=$1
 
   for filename in "$SCREENCAPS_DIR"/*.jpg; do
+    SC_FILE_NAME=$(basename "$filename")                   # e.g. tnpb13624-18.jpg
+    SC_FILE_NO_EXTENSION="${SC_FILE_NAME%.*}"               # remove extension
+    SC_FILE_NUMBER="${SC_FILE_NO_EXTENSION##*-}"            # number after the hyphen
 
-    SC_FILE_NAME=$(basename "$filename") # get the filename without the dir
-    SC_FILE_NO_EXTENSION=$(echo "$SC_FILE_NAME" | cut -f 1 -d '.') # remove the file extension
-    SC_FILE_PREFIX=${SC_FILE_NO_EXTENSION%-*} # get the prefix
-    SC_FILE_NUMBER=${SC_FILE_NO_EXTENSION/$SC_FILE_PREFIX-/} # get the number
-    SC_NUMBER=${SC_FILE_NUMBER#0} # convert to int
-    if [ "$SC_NUMBER" -lt 10 ]; then
-      SC_NEW_FILE_NAME_NO_EXTENSION=$SC_FILE_PREFIX"00"$SC_NUMBER
-    elif [ "$SC_NUMBER" -lt 100 ]; then
-      SC_NEW_FILE_NAME_NO_EXTENSION=$SC_FILE_PREFIX"0"$SC_NUMBER
+    # remove leading zeros and convert to int
+    SC_NUMBER=$((10#${SC_FILE_NUMBER}))
+
+    if [[ "$SC_FILE_NO_EXTENSION" == tn* ]]; then
+      PREFIX="tn"
     else
-      SC_NEW_FILE_NAME_NO_EXTENSION=$SC_FILE_PREFIX$SC_NUMBER
+      PREFIX=""
     fi
 
-    #echo "[$SC_NUMBER] Will be: $SC_NEW_FILE_NAME_NO_EXTENSION, should check in $filename - to replace $SC_FILE_NO_EXTENSION    with     $SC_NEW_FILE_NAME_NO_EXTENSION"
+    if [ "$SC_NUMBER" -lt 10 ]; then
+      SC_NEW_FILE_NAME_NO_EXTENSION=${PREFIX}00$SC_NUMBER
+    elif [ "$SC_NUMBER" -lt 100 ]; then
+      SC_NEW_FILE_NAME_NO_EXTENSION=${PREFIX}0$SC_NUMBER
+    else
+      SC_NEW_FILE_NAME_NO_EXTENSION=${PREFIX}$SC_NUMBER
+    fi
 
-    FINAL_FILE_NAME="$SCREENCAPS_DIR/$SC_NEW_FILE_NAME_NO_EXTENSION.jpg" # make the final filename
-    mv "$filename" "$FINAL_FILE_NAME" # actually move/rename the file
+    FINAL_FILE_NAME="$SCREENCAPS_DIR/$SC_NEW_FILE_NAME_NO_EXTENSION.jpg"
+    mv "$filename" "$FINAL_FILE_NAME"
   done
 }
 
@@ -219,18 +223,18 @@ echo ""
 
 
 ###########################################################################################################################################
-# get the length of the video so we can figure out screencaps, one every 3 seconds, starting at 8 seconds and ending 6 seconds before end #
+# get the length of the video so we can figure out screencaps, one every 3 seconds, starting at 15 seconds and ending 6 seconds before end #
 ###########################################################################################################################################
 VIDEO_LENGTH_SECONDS=$(docker-compose run --workdir="/go" mt-ffmpeg sh -c "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 $FILE_LOCATION_INSIDE_DOCKER")
 VIDEO_LENGTH_SECONDS=${VIDEO_LENGTH_SECONDS%.*}
 
 echo "Video length seconds: [$VIDEO_LENGTH_SECONDS]"
 
-# now we need to minus the end buffer, we're already setting the start to "00:00:08" so we minus 6 seconds for the end credits
+# now we need to minus the end buffer, we're already setting the start to "00:00:15" so we minus 6 seconds for the end credits
 ((VIDEO_LENGTH_SECONDS-=6))
 
 # now figure out the start and end time for screencaps
-SCREENCAP_START_TIME='00:00:08'
+SCREENCAP_START_TIME='00:00:15'
 SCREENCAP_END_TIME=$(secondsToTime "$VIDEO_LENGTH_SECONDS")
 NUM_SCREENCAPS=$((VIDEO_LENGTH_SECONDS/SCREENCAPS_INTERVAL))
 echo "Going to do [$NUM_SCREENCAPS] screencaps from [$SCREENCAP_START_TIME] to [$SCREENCAP_END_TIME]"
