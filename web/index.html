@@ -20,16 +20,20 @@
         </div>
 
         <script>
+            // basic helper to fetch query parameters
             function getQueryVariable(variable) {
-                var query = window.location.search.substring(1);
-                var vars = query.split("&");
-                for (var i=0;i<vars.length;i++) {
-                    var pair = vars[i].split("=");
-                    if (pair[0] === variable) {
-                        return pair[1];
-                    }
+                const params = new URLSearchParams(window.location.search);
+                if (params.has(variable)) {
+                    return params.get(variable);
                 }
-                alert('Query Variable ' + variable + ' not found');
+                return null;
+            }
+
+            function showError(msg) {
+                const div = document.createElement('div');
+                div.style.color = 'red';
+                div.textContent = msg;
+                document.body.appendChild(div);
             }
         </script>
 
@@ -40,6 +44,10 @@
             var shoot = getQueryVariable('shoot');
             var numScreencaps = parseInt(getQueryVariable('num_screencaps'));
             var numRollovers = parseInt(getQueryVariable('num_rollovers'));
+
+            if (!file || !shoot || isNaN(numScreencaps) || isNaN(numRollovers)) {
+                showError('Missing or invalid query parameters');
+            }
 
             var filePath = "../media/" + shoot + "/";
 
@@ -57,38 +65,41 @@
                         "kind": "thumbnails"
                     }]
                 }]
+            }).on('error', function() {
+                showError('Video failed to load: ' + videoFileLocation);
             });
 
             var screenCapToShow = Math.round((numScreencaps / 2) + 1);
             if (screenCapToShow < 10) { // add trailing 0
-                screenCapToShow = shoot + "00" + screenCapToShow + ".jpg";
+                screenCapToShow = "00" + screenCapToShow + ".jpg";
             } else if (screenCapToShow < 100) { // add trailing 0
-                screenCapToShow = shoot + "0" + screenCapToShow + ".jpg";
+                screenCapToShow = "0" + screenCapToShow + ".jpg";
             } else {
-                screenCapToShow = shoot + "" + screenCapToShow + ".jpg";
+                screenCapToShow = screenCapToShow + ".jpg";
             }
 
             var firstScreencapLocation = filePath + "screencaps/" + screenCapToShow;
             var firstNWScreencapLocation = filePath + "screencapsnw/" + screenCapToShow;
 
+            function createImg(src) {
+                var img = document.createElement('img');
+                img.src = src;
+                img.onerror = function() { showError('Missing image: ' + src); };
+                return img;
+            }
+
             var screenCapsHolder = document.getElementById('screencaps-holder');
-            var img = document.createElement('img');
-            img.src = firstScreencapLocation;
-            screenCapsHolder.appendChild(img);
+            screenCapsHolder.appendChild(createImg(firstScreencapLocation));
 
             var screenNWCapsHolder = document.getElementById('screencaps-nw-holder');
-            img = document.createElement('img');
-            img.src = firstNWScreencapLocation;
-            screenNWCapsHolder.appendChild(img);
+            screenNWCapsHolder.appendChild(createImg(firstNWScreencapLocation));
 
             // do rollovers
             var rolloversLocation = filePath + "rollover/180/";
             var rolloverHolder = document.getElementById('rollover-holder');
 
             for (var i = 1; i < (numRollovers + 1); i++) {
-                var img = document.createElement('img');
-                img.src = rolloversLocation + i + ".jpg";
-                rolloverHolder.appendChild(img);
+                rolloverHolder.appendChild(createImg(rolloversLocation + i + ".jpg"));
             }
 
         </script>
