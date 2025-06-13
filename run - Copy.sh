@@ -79,6 +79,8 @@ renameWatermarkedScreencaps () {
     fi
 
     if [ "$SC_NUMBER" -lt 10 ]; then
+      PADDED="00$SC_NUMBER"
+    elif [ "$SC_NUMBER" -lt 100 ]; then
       PADDED="0$SC_NUMBER"
     else
       PADDED="$SC_NUMBER"
