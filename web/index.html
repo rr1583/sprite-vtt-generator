@@ -69,17 +69,27 @@
                 showError('Video failed to load: ' + videoFileLocation);
             });
 
-            var screenCapToShow = Math.round((numScreencaps / 2) + 1);
-            if (screenCapToShow < 10) { // add trailing 0
-                screenCapToShow = "00" + screenCapToShow + ".jpg";
-            } else if (screenCapToShow < 100) { // add trailing 0
-                screenCapToShow = "0" + screenCapToShow + ".jpg";
+            var screenCapIndex = Math.round((numScreencaps / 2) + 1);
+            var screenCapToShowNW;
+            if (screenCapIndex < 10) {
+                screenCapToShowNW = "00" + screenCapIndex + ".jpg";
+            } else if (screenCapIndex < 100) {
+                screenCapToShowNW = "0" + screenCapIndex + ".jpg";
             } else {
-                screenCapToShow = screenCapToShow + ".jpg";
+                screenCapToShowNW = screenCapIndex + ".jpg";
             }
 
-            var firstScreencapLocation = filePath + "screencaps/" + screenCapToShow;
-            var firstNWScreencapLocation = filePath + "screencapsnw/" + screenCapToShow;
+            var screenCapToShow;
+            if (screenCapIndex < 10) {
+                screenCapToShow = "00" + screenCapIndex + ".jpg";
+            } else if (screenCapIndex < 100) {
+                screenCapToShow = "0" + screenCapIndex + ".jpg";
+            } else {
+                screenCapToShow = screenCapIndex + ".jpg";
+            }
+
+            var firstScreencapLocation = filePath + "screencaps/" + shoot + screenCapToShow;
+            var firstNWScreencapLocation = filePath + "screencapsnw/" + screenCapToShowNW;
 
             function createImg(src) {
                 var img = document.createElement('img');
