@@ -310,7 +310,8 @@ echo ""
 # now spin up the nginx to show the results / test video and images #
 #####################################################################
 
-if [ -z $(docker-compose ps -q mt-nginx) ] || [ -z $(docker ps -q --no-trunc | grep $(docker-compose ps -q mt-nginx)) ]; then
+NGINX_ID="$(docker-compose ps -q mt-nginx || true)"
+if [ -z "$NGINX_ID" ] || ! docker ps -q --no-trunc | grep -q "$NGINX_ID"; then
   echo ""
   echo "Nginx is not running so starting up..."
   docker-compose up -d mt-nginx
