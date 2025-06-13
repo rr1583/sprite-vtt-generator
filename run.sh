@@ -24,7 +24,7 @@ secondsToTime () {
   fi
 }
 
-# logic to go and rename files with correct naming convention:
+# rename helper used for screencaps without watermarks
 #   - drop the shoot code from the filename
 #   - pad numbers to always be three digits
 #   - thumbnails should retain the "tn" prefix
@@ -54,6 +54,40 @@ renameScreencaps () {
     fi
 
     FINAL_FILE_NAME="$SCREENCAPS_DIR/$SC_NEW_FILE_NAME_NO_EXTENSION.jpg"
+    mv "$filename" "$FINAL_FILE_NAME"
+  done
+}
+
+# rename helper for watermarked screencaps
+#   - keep the shoot code prefix
+#   - pad numbers to three digits
+#   - thumbnails retain the "tn" prefix
+renameWatermarkedScreencaps () {
+  SCREENCAPS_DIR=$1
+  SHOOT_CODE=$2
+
+  for filename in "$SCREENCAPS_DIR"/*.jpg; do
+    SC_FILE_NAME=$(basename "$filename")                   # e.g. pb13624-18.jpg
+    SC_FILE_NO_EXTENSION="${SC_FILE_NAME%.*}"               # remove extension
+    SC_FILE_NUMBER="${SC_FILE_NO_EXTENSION##*-}"            # number after the hyphen
+
+    SC_NUMBER=$((10#${SC_FILE_NUMBER}))
+
+    if [[ "$SC_FILE_NO_EXTENSION" == tn* ]]; then
+      PREFIX="tn"
+    else
+      PREFIX=""
+    fi
+
+    if [ "$SC_NUMBER" -lt 10 ]; then
+      PADDED="00$SC_NUMBER"
+    elif [ "$SC_NUMBER" -lt 100 ]; then
+      PADDED="0$SC_NUMBER"
+    else
+      PADDED="$SC_NUMBER"
+    fi
+
+    FINAL_FILE_NAME="$SCREENCAPS_DIR/${PREFIX}${SHOOT_CODE}${PADDED}.jpg"
     mv "$filename" "$FINAL_FILE_NAME"
   done
 }
@@ -248,8 +282,8 @@ docker-compose run --workdir="/go" mt-ffmpeg sh -c "mt $FILE_LOCATION_INSIDE_DOC
 # (this is super hacky but only way I could get it to work properly...) - use mogrify to resize the screencaps to make thumbs in a separate dir then move back to main dir and rename tn*
 echo "Generating thumbs for normal screencaps..."
 docker-compose run --workdir="$DOCKER_DIR_LOCATION/screencaps/" mt-ffmpeg sh -c 'mkdir -p thumbs; mogrify -path thumbs -resize 245x180^ -gravity center -extent 245x180 *.jpg; cd thumbs; for filename in *.jpg; do mv "$filename" ../tn"$filename"; done;'
-# HACK to rename the files as they need to be (see function for details)
-renameScreencaps "$LOCAL_FILE_PATH/screencaps"
+# rename the screencaps to use shoot code with padded numbering
+renameWatermarkedScreencaps "$LOCAL_FILE_PATH/screencaps" "$SHOOT_NAME"
 # cleanup - remove the empty thumbs dir
 rm -rf "$LOCAL_FILE_PATH/screencaps/thumbs/"
 
