@@ -60,7 +60,6 @@ renameScreencaps () {
 
 # rename helper for watermarked screencaps
 #   - keep the shoot code prefix
-#   - pad numbers to four digits
 #   - thumbnails retain the "tn" prefix
 renameWatermarkedScreencaps () {
   SCREENCAPS_DIR=$1
@@ -80,10 +79,6 @@ renameWatermarkedScreencaps () {
     fi
 
     if [ "$SC_NUMBER" -lt 10 ]; then
-      PADDED="000$SC_NUMBER"
-    elif [ "$SC_NUMBER" -lt 100 ]; then
-      PADDED="00$SC_NUMBER"
-    elif [ "$SC_NUMBER" -lt 1000 ]; then
       PADDED="0$SC_NUMBER"
     else
       PADDED="$SC_NUMBER"
