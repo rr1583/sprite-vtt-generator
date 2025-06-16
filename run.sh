@@ -310,6 +310,7 @@ echo ""
 # now spin up the nginx to show the results / test video and images #
 #####################################################################
 
+# Get nginx container ID if running; ignore errors so set -e doesn't exit
 NGINX_ID="$(docker-compose ps -q mt-nginx 2>/dev/null || true)"
 if [ -z "$NGINX_ID" ] || ! docker ps -q --no-trunc --filter "id=$NGINX_ID" | grep -q .; then
   echo ""
