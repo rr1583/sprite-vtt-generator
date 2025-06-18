@@ -20,7 +20,15 @@ This is what executes the logic i.e. does the following steps:
 *As mentioned in the beginning, this is custom for my needs, to make something custom for you, use this as a base and make another .sh file e.g. `custom-run.sh` and do whatever is needed in there for you*
 
 ### Dockerfile
-The main docker image that will be running is simply based off of the go docker image and just downloads and installs ffmpeg and imagemagick and then the [mutschler/mt](https://github.com/mutschler/mt) go package.
+The main docker image that will be running is simply based off of the go docker image. It downloads and installs ffmpeg and imagemagick and then installs the [mutschler/mt](https://github.com/mutschler/mt) go package using `go install`.
+
+Older versions of the Dockerfile cloned the `mt` repository and checked out a specific commit. That commit has since been removed, which results in an error similar to:
+
+```
+fatal: reference is not a tree: fa4f1771d232f6c09a8d7db39d530d77d1b497a5
+```
+
+If you encounter this error, make sure you are using the updated Dockerfile that installs `mt` via `go install` rather than cloning a commit.
 
 ### Docker compose
 The docker compose is just the docker mentioned above and also an nginx server so we can view and verify the results after the screencaps have been generated 
