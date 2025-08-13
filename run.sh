@@ -257,7 +257,11 @@ echo ""
 ###########################################################################################################################################
 # get the length of the video so we can figure out screencaps, one every 3 seconds, starting at 15 seconds and ending 6 seconds before end #
 ###########################################################################################################################################
-VIDEO_LENGTH_SECONDS=$(docker-compose run --workdir="/go" mt-ffmpeg sh -c "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 $FILE_LOCATION_INSIDE_DOCKER")
+VIDEO_LENGTH_SECONDS=$(docker-compose run --workdir="/go" mt-ffmpeg \
+  sh -c "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 '$FILE_LOCATION_INSIDE_DOCKER'" 2>/dev/null) || {
+  echo "Failed to determine video length using ffprobe" >&2
+  exit 1
+}
 VIDEO_LENGTH_SECONDS=${VIDEO_LENGTH_SECONDS%.*}
 
 echo "Video length seconds: [$VIDEO_LENGTH_SECONDS]"
