@@ -5,13 +5,11 @@ services:
     image: mt-ffmpeg:latest
     build:
       context: ./
-    container_name: mt-ffmpeg
     volumes:
       - ./media:/mnt/media
 
   mt-nginx:
     image: nginx
-    container_name: mt-nginx
     depends_on:
       - mt-ffmpeg
     ports:
@@ -19,4 +17,4 @@ services:
     restart: always
     volumes:
       - ./web:/usr/share/nginx/html/web
-      - ./media:/usr/share/nginx/html/media
+      - ./media:/usr/share/nginx/html/mediaroot
