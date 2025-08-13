@@ -215,7 +215,7 @@ echo "Making [$NUM_ROLLOVERS] rollovers..."
 # run and then mogrify to resize to correct size
 # make one more than we need so we can delete it later (because we don't want the end credits)
 declare -i NUM_ROLLOVERS_PLUS_ONE=$((NUM_ROLLOVERS+1))
-docker-compose run --workdir="/go" mt-ffmpeg sh -c "mt $FILE_LOCATION_INSIDE_DOCKER --single-images=true --verbose=true --overwrite=true --padding=0 --width=240 --numcaps=$NUM_ROLLOVERS_PLUS_ONE --output=$DOCKER_DIR_LOCATION/rollover/180/.jpg; mogrify -resize 240x180^ -gravity center -extent 240x180 $DOCKER_DIR_LOCATION/rollover/180/*.jpg"
+docker-compose run --rm --workdir="/go" mt-ffmpeg sh -c "mt $FILE_LOCATION_INSIDE_DOCKER --single-images=true --verbose=true --overwrite=true --padding=0 --width=240 --numcaps=$NUM_ROLLOVERS_PLUS_ONE --output=$DOCKER_DIR_LOCATION/rollover/180/.jpg; mogrify -resize 240x180^ -gravity center -extent 240x180 $DOCKER_DIR_LOCATION/rollover/180/*.jpg"
 
 
 # we need to rename the rollovers
@@ -241,7 +241,7 @@ echo ""
 ##################################
 echo "Running mt script against file [$FILE_NAME]"
 echo "Making spritemap and VTT..."
-docker-compose run --workdir="/go" mt-ffmpeg sh -c "mt $FILE_LOCATION_INSIDE_DOCKER --webvtt=true --interval=$NUM_SECONDS_INTERVAL_VTT --verbose=true --overwrite=true --header=false --disable-timestamps=true --padding=0 --width=240 --output=$DOCKER_SPRITEMAP_LOCATION; mogrify -quality 75 $DOCKER_SPRITEMAP_LOCATION"
+docker-compose run --rm --workdir="/go" mt-ffmpeg sh -c "mt $FILE_LOCATION_INSIDE_DOCKER --webvtt=true --interval=$NUM_SECONDS_INTERVAL_VTT --verbose=true --overwrite=true --header=false --disable-timestamps=true --padding=0 --width=240 --output=$DOCKER_SPRITEMAP_LOCATION; mogrify -quality 75 $DOCKER_SPRITEMAP_LOCATION"
 
 
 #####################
@@ -257,7 +257,7 @@ echo ""
 ###########################################################################################################################################
 # get the length of the video so we can figure out screencaps, one every 3 seconds, starting at 15 seconds and ending 6 seconds before end #
 ###########################################################################################################################################
-VIDEO_LENGTH_SECONDS=$(docker-compose run --workdir="/go" mt-ffmpeg \
+VIDEO_LENGTH_SECONDS=$(docker-compose run --rm --workdir="/go" mt-ffmpeg \
   sh -c "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 '$FILE_LOCATION_INSIDE_DOCKER'" 2>/dev/null) || {
   echo "Failed to determine video length using ffprobe" >&2
   exit 1
@@ -280,10 +280,10 @@ echo ""
 # do the screencaps #
 #####################
 echo "Making [$NUM_SCREENCAPS] screencaps..."
-docker-compose run --workdir="/go" mt-ffmpeg sh -c "mt $FILE_LOCATION_INSIDE_DOCKER --single-images=true --verbose=true --overwrite=true --padding=0 --width=1278 --interval=$SCREENCAPS_INTERVAL --from='$SCREENCAP_START_TIME' --to='$SCREENCAP_END_TIME' --output=$DOCKER_DIR_LOCATION/screencaps/$SHOOT_NAME.jpg;"
+docker-compose run --rm --workdir="/go" mt-ffmpeg sh -c "mt $FILE_LOCATION_INSIDE_DOCKER --single-images=true --verbose=true --overwrite=true --padding=0 --width=1278 --interval=$SCREENCAPS_INTERVAL --from='$SCREENCAP_START_TIME' --to='$SCREENCAP_END_TIME' --output=$DOCKER_DIR_LOCATION/screencaps/$SHOOT_NAME.jpg;"
 # (this is super hacky but only way I could get it to work properly...) - use mogrify to resize the screencaps to make thumbs in a separate dir then move back to main dir and rename tn*
 echo "Generating thumbs for normal screencaps..."
-docker-compose run --workdir="$DOCKER_DIR_LOCATION/screencaps/" mt-ffmpeg sh -c 'mkdir -p thumbs; mogrify -path thumbs -resize 245x180^ -gravity center -extent 245x180 *.jpg; cd thumbs; for filename in *.jpg; do mv "$filename" ../tn"$filename"; done;'
+docker-compose run --rm --workdir="$DOCKER_DIR_LOCATION/screencaps/" mt-ffmpeg sh -c 'mkdir -p thumbs; mogrify -path thumbs -resize 245x180^ -gravity center -extent 245x180 *.jpg; cd thumbs; for filename in *.jpg; do mv "$filename" ../tn"$filename"; done;'
 # rename the screencaps to use shoot code with padded numbering
 renameWatermarkedScreencaps "$LOCAL_FILE_PATH/screencaps" "$SHOOT_NAME"
 # cleanup - remove the empty thumbs dir
@@ -296,10 +296,10 @@ echo ""
 
 ###  and for the no watermark ###
 echo "Making [$NUM_SCREENCAPS] screencaps with no watermark..."
-docker-compose run --workdir="/go" mt-ffmpeg sh -c "mt $FILE_LOCATION_NO_WATERMARK_INSIDE_DOCKER --single-images=true --verbose=true --overwrite=true --padding=0 --width=1278 --interval=$SCREENCAPS_INTERVAL --from='$SCREENCAP_START_TIME' --to='$SCREENCAP_END_TIME' --output=$DOCKER_DIR_LOCATION/screencapsnw/$SHOOT_NAME.jpg"
+docker-compose run --rm --workdir="/go" mt-ffmpeg sh -c "mt $FILE_LOCATION_NO_WATERMARK_INSIDE_DOCKER --single-images=true --verbose=true --overwrite=true --padding=0 --width=1278 --interval=$SCREENCAPS_INTERVAL --from='$SCREENCAP_START_TIME' --to='$SCREENCAP_END_TIME' --output=$DOCKER_DIR_LOCATION/screencapsnw/$SHOOT_NAME.jpg"
 # (this is super hacky but only way I could get it to work properly...) - use mogrify to resize the screencaps to make thumbs in a separate dir then move back to main dir and rename tn*
 echo "Generating thumbs for no watermark screencaps..."
-docker-compose run --workdir="$DOCKER_DIR_LOCATION/screencapsnw/" mt-ffmpeg sh -c 'mkdir -p thumbs; mogrify -path thumbs -resize 245x180^ -gravity center -extent 245x180 *.jpg; cd thumbs; for filename in *.jpg; do mv "$filename" ../tn"$filename"; done;'
+docker-compose run --rm --workdir="$DOCKER_DIR_LOCATION/screencapsnw/" mt-ffmpeg sh -c 'mkdir -p thumbs; mogrify -path thumbs -resize 245x180^ -gravity center -extent 245x180 *.jpg; cd thumbs; for filename in *.jpg; do mv "$filename" ../tn"$filename"; done;'
 # HACK to rename the files as they need to be (see function for details)
 renameScreencaps "$LOCAL_FILE_PATH/screencapsnw"
 # cleanup - remove the empty thumbs dir
