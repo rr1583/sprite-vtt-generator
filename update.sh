@@ -2,6 +2,8 @@
 
 set -e
 
+DOCKER_COMPOSE_BIN=$(command -v docker-compose || echo "docker compose")
+
 usage() { echo "Usage: $0 [-r]"; exit 1; }
 
 # default values - don't rebuild by default
@@ -28,7 +30,7 @@ shift $((OPTIND-1))
 
 # now bring the stack down and rebuild
 echo "Bringing down the local stack..."
-docker-compose down
+$DOCKER_COMPOSE_BIN down
 echo "Stack successfully brought down"
 echo ""
 
@@ -41,7 +43,7 @@ fi
 
 # now bring back up the stack
 echo "Bringing the local stack up..."
-docker-compose up -d
+$DOCKER_COMPOSE_BIN up -d
 
 echo "Update 100% Complete, Enjoy your new version! Now using version [$(cat version.txt)]"
 
