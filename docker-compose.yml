@@ -1,5 +1,3 @@
-version: "3.5"
-
 services:
   mt-ffmpeg:
     image: mt-ffmpeg:latest
