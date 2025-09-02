@@ -30,4 +30,7 @@ WORKDIR /go
 # install the mt tool
 # Prior versions cloned a specific commit of mutschler/mt, but that commit was
 # removed upstream. Installing via `go install` ensures the build succeeds.
-RUN go install github.com/mutschler/mt/v2@v2.0.0
+# Use Go module proxy for reliability and fetch the latest available version.
+ENV GOPROXY=https://proxy.golang.org,direct
+RUN go install github.com/mutschler/mt/v2@latest \
+    || go install github.com/mutschler/mt@latest
