@@ -104,6 +104,12 @@ elif [ "$(expr substr "$(uname -s)" 1 10)" == "MINGW64_NT" ]; then
     SYSTEM="windows"
 fi
 
+ARCH="$(uname -m)"
+if [ "$SYSTEM" = "mac" ] && [ "$ARCH" = "arm64" ]; then
+    export DOCKER_DEFAULT_PLATFORM="linux/arm64"
+    echo "Detected Apple silicon; using Docker platform [$DOCKER_DEFAULT_PLATFORM]"
+fi
+
 echo "Running script on a [$SYSTEM] machine"
 echo ""
 
@@ -217,7 +223,8 @@ echo "Making [$NUM_ROLLOVERS] rollovers..."
 # run and then mogrify to resize to correct size
 # make one more than we need so we can delete it later (because we don't want the end credits)
 declare -i NUM_ROLLOVERS_PLUS_ONE=$((NUM_ROLLOVERS+1))
-$DOCKER_COMPOSE_BIN run --rm --workdir="/go" mt-ffmpeg sh -c "mt $FILE_LOCATION_INSIDE_DOCKER --single-images=true --verbose=true --overwrite=true --padding=0 --width=240 --numcaps=$NUM_ROLLOVERS_PLUS_ONE --output=$DOCKER_DIR_LOCATION/rollover/180/.jpg; mogrify -resize 240x180^ -gravity center -extent 240x180 $DOCKER_DIR_LOCATION/rollover/180/*.jpg"
+$DOCKER_COMPOSE_BIN run --rm --workdir="/go" mt-ffmpeg \
+  sh -c "mt \"$FILE_LOCATION_INSIDE_DOCKER\" --single-images=true --verbose=true --overwrite=true --padding=0 --width=240 --numcaps=$NUM_ROLLOVERS_PLUS_ONE --output=\"$DOCKER_DIR_LOCATION/rollover/180/.jpg\"; mogrify -resize 240x180^ -gravity center -extent 240x180 \"$DOCKER_DIR_LOCATION/rollover/180\"/*.jpg"
 
 
 # we need to rename the rollovers
